@@ -6,6 +6,7 @@
 # Run a command on multiple hosts: am hostname command
 
 set -uo pipefail
+[ "${#}" -lt 1 ] && echo "usage: $(basename $0) <hostname> [sudo] [command]" && exit 1
 
 conn="ssh -o ConnectTimeout=10 \
           -o BatchMode=yes \

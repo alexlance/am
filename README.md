@@ -1,24 +1,25 @@
 am
 ==
 
-Gather a list of EC2 instances - run commands on them!
+Print a list of EC2 instances by their instance name - and/or run commands on them.
 
 Prerequisites
 -------------
 
-0. Uninstall previous versions of this application especially if they're called bam
-1. Install [AWS CLI](https://github.com/aws/aws-cli)
-2. Run aws configure
-3. Setup ssh
+1. A working aws-cli setup
+2. SSH access to the relevant instances
 
 Installation
 ------------
 
-    git clone git@github.com:alexlance/am
-    cp am/am /usr/bin/
+    git clone git@github.com:alexlance/am am.repo
+    ln -s am.repo/am /usr/bin/am
 
 Usage
 -----
+
+    # usage:
+    am <hostname> [sudo] [command]
 
     # print a list of servers matching this name
     am server-name
