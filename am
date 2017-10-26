@@ -1,6 +1,6 @@
 #!/bin/bash
 set -uo pipefail
-[ "${#}" -eq 0 ] && echo "usage: $(basename $0) <hostname> [command]" && exit 1
+[ ${#} -eq 0 ] && echo "usage: $(basename $0) <hostname> [command]" && exit 1
 
 region="ap-southeast-2"
 [ "${1:0:3}" == "us-" ] && region="us-west-2"
@@ -29,8 +29,8 @@ if [ ${#} -gt 1 ]; then
     echo "* ${i}: ${@}"
     ssh -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
   done
-elif [ -t 1 ]; then
-  echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type, .ami, (.role|split("/")[1]) ] | join(" ")' | column -t
+elif [ -t 1 ] || [ -v force ]; then
+  echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type, .ami, (.role|split("/")?|last) ] | join(" ")' | column -t
 else
   echo ${ips}
 fi

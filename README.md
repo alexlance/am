@@ -39,5 +39,9 @@ Usage
     # print out list of IP addresses of servers when output not going to terminal
     for i in $(am cluster); do ping -c1 $i; done
 
+    # or force it to be a table with env var "force"
+    force=1 echo $(am cluster)
+
     # any mentions of sudo in the command will be replaced with 'echo "$password" | sudo -S'
+    # note single quotes to prevent local shell interpretation
     am server1 'sudo docker start $(sudo docker ps -qa -f Name=stuff)'
