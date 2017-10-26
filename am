@@ -1,9 +1,4 @@
 #!/bin/bash
-#
-# am <hostname> [sudo] [command]
-#
-# Print a table of matching hosts: am hostname
-# Run a command on multiple hosts: am hostname command
 
 set -uo pipefail
 [ "${#}" -lt 1 ] && echo "usage: $(basename $0) <hostname> [command]" && exit 1
@@ -33,20 +28,16 @@ if [ ${#} -gt 1 ]; then
   [[ "${@}" == *"sudo "* ]] && read -p 'sudo password: ' -s pass
   for i in $(echo ${results} | jq -r '.[] | .ip'); do
     echo -e "$(tput bold)* Running: ssh ${i} ${@}$(tput sgr0)"
-    if [ -v pass ]; then
-      rep="echo $pass | sudo -p' ' -S"
-      ${conn} ${i} -- "${@//sudo/$rep}"
-    else
-      ${conn} ${i} -- "${@}"
-    fi
+    cmd="${@}"
+    [ -v pass ] && cmd=${@//sudo/"echo $pass | sudo -p' ' -S"}
+    ${conn} ${i} -- "${cmd}"
     fail=$?
-    [ ${fail} != 0 ] && echo "Exited: $fail"
+    [ ${fail} != 0 ] && echo "Exited: ${fail}" && exit ${fail}
   done
 else
   if [ -t 1 ]; then
     echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type] | join(" ")' | sort | column -t
   else
-    results=$(echo ${results} | jq -r '.[] | .ip')
-    echo ${results} # no newlines please
+    echo ${results} | jq -r '.[] | .ip' | tr '\n' ' '
   fi
 fi
