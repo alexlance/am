@@ -22,7 +22,7 @@ if [ ${#} -gt 1 ]; then
   cmd="${@}"
   if [[ "${cmd}" == *"sudo "* ]]; then
     read -p 'Enter sudo password: ' -s password
-    cmd=${cmd//sudo/"echo ${password} | sudo -p' ' -S"}
+    cmd=${cmd//sudo/"echo \"${password}\" | sudo -p' ' -S"}
   fi
   for i in ${ips}; do
     echo "* ${i}: ${@}"
