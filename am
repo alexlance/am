@@ -16,7 +16,7 @@ results=$(
       id:InstanceId, ip:PrivateIpAddress, type:InstanceType, az:Placement.AvailabilityZone}"
 )
 
-ips=$(echo ${results} | jq -r '.[] | .ip')
+ips=$(echo ${results} | jq -r 'sort_by(.name) | .[] | .ip')
 if [ ${#} -gt 1 ]; then
   shift # drop hostname
   cmd="${@}"
@@ -29,7 +29,7 @@ if [ ${#} -gt 1 ]; then
     ssh -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
   done
 elif [ -t 1 ]; then
-  echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type] | join(" ")' | sort | column -t
+  echo ${results} | jq -r 'sort_by(.name) | .[] | [.name, .id, .ip, .az, .type] | join(" ")' | column -t
 else
   echo ${ips}
 fi
