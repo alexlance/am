@@ -3,18 +3,12 @@
 set -uo pipefail
 [ "${#}" -lt 1 ] && echo "usage: $(basename $0) <hostname> [command]" && exit 1
 
-conn="ssh -o ConnectTimeout=10 \
-          -o BatchMode=yes \
-          -o UserKnownHostsFile=/dev/null \
-          -o StrictHostKeyChecking=no -t -q"
-
 region="ap-southeast-2"
 [ "${1:0:3}" == "us-" ] && region="us-west-2"
 
 results=$(
   aws ec2 describe-instances \
     --region ${region} \
-    --output json \
     --filters \
       "Name=tag:Name,Values=*${1}*" \
       "Name=instance-state-name,Values=running" \
@@ -25,14 +19,14 @@ results=$(
 
 if [ ${#} -gt 1 ]; then
   shift # drop hostname
-  [[ "${@}" == *"sudo "* ]] && read -p 'sudo password: ' -s pass
+  cmd="${@}"
+  if [[ "${cmd}" == *"sudo "* ]]; then
+    read -p 'sudo password: ' -s password
+    cmd=${cmd//sudo/"echo ${password} | sudo -p' ' -S"}
+  fi
   for i in $(echo ${results} | jq -r '.[] | .ip'); do
     echo -e "$(tput bold)* Running: ssh ${i} ${@}$(tput sgr0)"
-    cmd="${@}"
-    [ -v pass ] && cmd=${@//sudo/"echo $pass | sudo -p' ' -S"}
-    ${conn} ${i} -- "${cmd}"
-    fail=$?
-    [ ${fail} != 0 ] && echo "Exited: ${fail}" && exit ${fail}
+    ssh -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
   done
 else
   if [ -t 1 ]; then
