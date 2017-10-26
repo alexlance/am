@@ -13,7 +13,8 @@ results=$(
       "Name=instance-state-name,Values=running" \
     --query \
       "sort_by(Reservations[*].Instances[].{name:Tags[?Key=='Name'] | [0].Value, \
-      id:InstanceId, ip:PrivateIpAddress, type:InstanceType, az:Placement.AvailabilityZone}, &name)"
+      id:InstanceId, ip:PrivateIpAddress, type:InstanceType, az:Placement.AvailabilityZone, ami:ImageId \
+      role:IamInstanceProfile.Arn}, &name)"
 )
 
 ips=$(echo ${results} | jq -r '.[] | .ip')
@@ -29,7 +30,7 @@ if [ ${#} -gt 1 ]; then
     ssh -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
   done
 elif [ -t 1 ]; then
-  echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type] | join(" ")' | column -t
+  echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type, .ami, (.role|split("/")[1]) ] | join(" ")' | column -t
 else
   echo ${ips}
 fi
