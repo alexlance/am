@@ -19,7 +19,7 @@ Usage
 -----
 
     # usage:
-    am <hostname> [sudo] [command]
+    am <hostname> [command]
 
     # print a list of servers matching this name
     am server-name
@@ -38,3 +38,7 @@ Usage
 
     # print out list of IP addresses of servers when output not going to terminal
     for i in $(am cluster); do ping -c1 $i; done
+
+    # sudo in the command will be replaced with 'echo "$password" | sudo -S'
+    # the $password will only be prompted for once at the start and substituted as needed
+    am server1 sudo docker start '$(sudo docker ps -qa -F Name=stuff)'
