@@ -1,7 +1,6 @@
 #!/bin/bash
-
 set -uo pipefail
-[ "${#}" -lt 1 ] && echo "usage: $(basename $0) <hostname> [command]" && exit 1
+[ "${#}" -eq 0 ] && echo "usage: $(basename $0) <hostname> [command]" && exit 1
 
 region="ap-southeast-2"
 [ "${1:0:3}" == "us-" ] && region="us-west-2"
@@ -17,21 +16,20 @@ results=$(
       id:InstanceId, ip:PrivateIpAddress, type:InstanceType, az:Placement.AvailabilityZone}"
 )
 
+ips=$(echo ${results} | jq -r '.[] | .ip')
 if [ ${#} -gt 1 ]; then
   shift # drop hostname
   cmd="${@}"
   if [[ "${cmd}" == *"sudo "* ]]; then
-    read -p 'sudo password: ' -s password
+    read -p 'Enter sudo password: ' -s password
     cmd=${cmd//sudo/"echo ${password} | sudo -p' ' -S"}
   fi
-  for i in $(echo ${results} | jq -r '.[] | .ip'); do
-    echo -e "$(tput bold)* Running: ssh ${i} ${@}$(tput sgr0)"
+  for i in ${ips}; do
+    echo "* ${i}: ${@}"
     ssh -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
   done
+elif [ -t 1 ]; then
+  echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type] | join(" ")' | sort | column -t
 else
-  if [ -t 1 ]; then
-    echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type] | join(" ")' | sort | column -t
-  else
-    echo ${results} | jq -r '.[] | .ip' | tr '\n' ' '
-  fi
+  echo ${ips}
 fi
