@@ -1,0 +1,4 @@
+_am() {
+  COMPREPLY=($(compgen -W "$(cat /tmp/.instances)" -- ${COMP_WORDS[COMP_CWORD]}))
+}
+complete -F _am am
