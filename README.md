@@ -1,13 +1,13 @@
 am
 ==
 
-Print a list of EC2 instances by their instance name - and/or run commands on them.
+Print a list of AWS EC2 instances by their instance name - and/or run commands on them.
 
 Prerequisites
 -------------
 
-1. A working aws-cli setup
-2. SSH access to the relevant instances
+1. a working aws-cli setup
+2. ssh access to the relevant instances
 
 Installation
 ------------
@@ -25,23 +25,10 @@ Usage
     am server-name
 
     # run a command on a bunch of servers that match this name eg
-    am webservers ps -ef
-
-    # remember to escape pipes and ampersands etc if you want them to run remotely
-    am webservers ps -ef \| grep apache
-
-    # run privileged commands too using sudo - only type sudo password once, even though multiple hosts!
-    am workers sudo docker ps
+    am webservers 'ps -ef | grep apache'
 
     # run a shell
     am some-host bash
 
-    # print out list of IP addresses of servers when output not going to terminal
-    for i in $(am cluster); do ping -c1 $i; done
-
-    # or force it to be a table with env var "force"
-    force=1 echo $(am cluster)
-
     # any mentions of sudo in the command will be replaced with 'echo "$password" | sudo -S'
-    # note single quotes to prevent local shell interpretation
     am server1 'sudo docker start $(sudo docker ps -qa -f Name=stuff)'
