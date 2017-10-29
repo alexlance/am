@@ -3,6 +3,8 @@ am
 
 Print a list of AWS EC2 instances that match a name, and run commands remotely on those instances.
 
+![am demo](http://alexlance.com/am_for_github.gif)
+
 
 Prerequisites
 -------------

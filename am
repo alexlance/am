@@ -21,7 +21,7 @@ if [ ${#} -gt 1 ]; then
   shift # drop hostname
   cmd="${@}"
   if [[ "${cmd}" == *"sudo "* ]]; then
-    read -p 'Enter sudo password: ' -s password
+    read -p 'Enter sudo password: ' -s password; echo
     cmd=${cmd//sudo/"echo \"${password}\" | sudo -p' ' -S"}
   fi
   for i in $(echo ${results} | jq -r '.[] | .ip'); do
