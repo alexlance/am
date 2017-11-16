@@ -1,5 +1,7 @@
 #!/bin/bash
-[ ${#} -eq 0 ] && echo "usage: am <hostname> [command]" && exit 1
+prog="${0##*/}"
+[ ${#} -eq 0 ] && echo "usage: ${prog} <hostname> [command]" && exit 1
+[ ${prog} == "amp" ] && fast="-f"
 
 # change the default region if hostname starts with us-
 [ "${1:0:3}" == "us-" ] && region="--region us-west-2"
@@ -24,11 +26,11 @@ else
   shift # drop hostname
   cmd="${@}"
   if grep -q "sudo " <<< "${cmd}"; then
-    read -p '[am] sudo password: ' -s password; echo
+    read -p "[${prog}] sudo password: " -s password; echo
     cmd=${cmd//sudo/"echo \"${password}\" | sudo -p' ' -S"}
   fi
   for i in $(echo ${results} | jq -r '.[] | .ip'); do
     echo "* ${i}: ${@}"
-    ssh -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
+    ssh ${fast} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
   done
 fi
