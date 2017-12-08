@@ -6,15 +6,23 @@ prog="${0##*/}"
 # change the default region if hostname starts with us-
 [ "${1:0:3}" == "us-" ] && region="--region us-west-2"
 
+# filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
+field="Name=tag:Name,Values=*${1}*"
+[ "${1:0:2}" == "i-" ]                      && field="Name=instance-id,Values=${1}"
+[ "${1:0:4}" == "ami-" ]                    && field="Name=image-id,Values=${1}"
+[ $(grep -E '^[0-9]+'     <<< "${1:0:1}") ] && field="Name=private-ip-address,Values=*${1}*"
+[ $(grep -E '^[a-z][0-9]' <<< "${1:0:2}") ] && field="Name=instance-type,Values=${1}*"
+
 results=$(
   aws ec2 describe-instances ${region} \
     --filters \
-      "Name=tag:Name,Values=*${1}*" \
+      ${field} \
       "Name=instance-state-name,Values=running" \
     --query \
       "sort_by(Reservations[*].Instances[].{name:Tags[?Key=='Name'] | [0].Value, \
       id:InstanceId, ip:PrivateIpAddress, az:Placement.AvailabilityZone, type:InstanceType, \
-      ami:ImageId, role:IamInstanceProfile.Arn}, &name)"
+      ami:ImageId, role:IamInstanceProfile.Arn}, &name)" \
+    --cli-read-timeout 0
 )
 
 # print a table of matching hosts if only hostname entered
