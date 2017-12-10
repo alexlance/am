@@ -19,8 +19,7 @@ Installation
 Get the script into your $PATH:
 
     git clone git@github.com:alexlance/am am.repo
-    ln -s am.repo/am /usr/bin/am   # for sequential command execution
-    ln -s am.repo/am /usr/bin/amp  # for parallel command execution (faster, but non-sequential output)
+    ln -s am.repo/am /usr/bin/am
 
 If you'd like tab-completion for your instance names, run this as a cronjob every half hour or so:
 
@@ -35,7 +34,7 @@ Usage
 -----
 
     # usage:
-    am <instancename> [command]
+    am [-p|-l] <instancename> [command]
 
     # print a list of servers matching this name
     am webservers
@@ -50,4 +49,7 @@ Usage
     am webservers 'sudo docker start $(sudo docker ps -qa -f Name=stuff)'
 
     # amp runs commands using ssh -f, for backgrounded execution. Much faster when targeting a lot of servers
-    amp lots-and-lots-of-servers 'run a command, but the output is going to be all jumbled up'
+    am -p lots-and-lots-of-servers 'run a command, but the output is going to be all jumbled up'
+
+    # show the cloudwatch logs for a CW log group named /var/log/syslog, where the streams match the server names
+    am -l webservers
