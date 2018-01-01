@@ -55,8 +55,8 @@ elif [ ${#} -gt 1 ]; then
   shift # drop hostname
   cmd="${@}"
   if grep -q "sudo " <<< "${cmd}"; then
-    read -p "[am] sudo password: " -s password; echo
-    cmd=${cmd//sudo/"echo \"${password}\" | sudo -p' ' -S"}
+    [ "${AM_SUDO_PASSWORD}" ] || read -p "[am] sudo password: " -s AM_SUDO_PASSWORD; echo
+    cmd=${cmd//sudo/"echo \"${AM_SUDO_PASSWORD}\" | sudo -p' ' -S"}
   fi
   for i in $(echo ${results} | jq -r '.[] | .ip'); do
     echo "* ${i}: ${@}"
