@@ -59,7 +59,7 @@ elif [ ${#} -gt 1 ]; then
     cmd=${cmd//sudo/"echo \"${AM_SUDO_PASSWORD}\" | sudo -p' ' -S"}
   fi
   for i in $(echo ${results} | jq -r '.[] | .ip'); do
-    echo "* ${i}: ${@}"
+    echo "* ${i}: ${@}" > /dev/stderr
     ssh ${fast} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
   done
 
