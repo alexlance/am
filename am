@@ -9,8 +9,12 @@ done
 shift $((${OPTIND} - 1))
 [ ${#} -eq 0 ] && echo "usage: am [-p] <hostname> [command]" && exit 1
 
-# change the default region if hostname starts with us-
-[ "${1:0:3}" == "us-" ] && region="--region us-west-2"
+if [ -v AWS_REGIONS ]; then
+  regions="${AWS_REGIONS}"
+else
+  echo "AWS_REGIONS is empty. Try eg: export AWS_REGIONS=\"ap-southeast-2 us-west-2\""
+  exit 1
+fi
 
 # filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
 field="Name=tag:Name,Values=*${1}*"
@@ -19,8 +23,9 @@ field="Name=tag:Name,Values=*${1}*"
 [ $(grep -E '^[0-9]+'     <<< "${1:0:1}") ] && field="Name=private-ip-address,Values=*${1}*"
 [ $(grep -E '^[a-z][0-9]' <<< "${1:0:2}") ] && field="Name=instance-type,Values=${1}*"
 
-results=$(
-  aws ec2 describe-instances ${region} \
+for region in ${regions}; do
+results+=$(
+  aws ec2 describe-instances --region ${region} \
     --filters \
       ${field} \
       "Name=instance-state-name,Values=running" \
@@ -30,6 +35,7 @@ results=$(
       up:LaunchTime, ami:ImageId, role:IamInstanceProfile.Arn}, &name)" \
     --cli-read-timeout 0
 )
+done
 
 # run a command remotely on matching hosts
 if [ ${#} -gt 1 ]; then
