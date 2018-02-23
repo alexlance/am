@@ -1,12 +1,6 @@
 #!/bin/bash
 [ ${#} -eq 0 ] && echo "usage: [FAST=1] am <hostname> [command]" && exit 1
-
-if [ -v AWS_REGIONS ]; then
-  regions="${AWS_REGIONS}"
-else
-  echo 'AWS_REGIONS is empty. Try: export AWS_REGIONS="ap-southeast-2 us-west-2"'
-  exit 1
-fi
+[ -z "${AWS_REGIONS}" ] && echo 'AWS_REGIONS is empty. Eg try: export AWS_REGIONS="ap-southeast-2 us-west-2"' && exit 1
 
 # possibly background the ssh command for faster command execution
 [ -v FAST ] && fast="-f"
@@ -18,18 +12,18 @@ field="Name=tag:Name,Values=*${1}*"
 [ $(grep -E '^[0-9]+'     <<< "${1:0:1}") ] && field="Name=private-ip-address,Values=*${1}*"
 [ $(grep -E '^[a-z][0-9]' <<< "${1:0:2}") ] && field="Name=instance-type,Values=${1}*"
 
-for region in ${regions}; do
-results+=$(
-  aws ec2 describe-instances --region ${region} \
-    --filters \
-      ${field} \
-      "Name=instance-state-name,Values=running" \
-    --query \
-      "sort_by(Reservations[*].Instances[].{name:Tags[?Key=='Name'] | [0].Value, \
-      id:InstanceId, ip:PrivateIpAddress, az:Placement.AvailabilityZone, type:InstanceType, \
-      up:LaunchTime, ami:ImageId, role:IamInstanceProfile.Arn}, &name)" \
-    --cli-read-timeout 0
-)
+for region in ${AWS_REGIONS}; do
+  results+=$(
+    aws ec2 describe-instances --region ${region} \
+      --filters \
+        ${field} \
+        "Name=instance-state-name,Values=running" \
+      --query \
+        "sort_by(Reservations[*].Instances[].{name:Tags[?Key=='Name'] | [0].Value, \
+        id:InstanceId, ip:PrivateIpAddress, az:Placement.AvailabilityZone, type:InstanceType, \
+        up:LaunchTime, ami:ImageId, role:IamInstanceProfile.Arn}, &name)" \
+      --cli-read-timeout 0
+  )
 done
 
 # run a command remotely on matching hosts
