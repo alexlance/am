@@ -34,9 +34,11 @@ if [ ${#} -gt 1 ]; then
     [ "${AM_SUDO_PASSWORD}" ] || read -p "[am] sudo password: " -s AM_SUDO_PASSWORD; echo
     cmd=${cmd//sudo/"echo \"${AM_SUDO_PASSWORD}\" | sudo -p' ' -S"}
   fi
-  for i in $(echo ${results} | jq -r '.[] | .ip'); do
-    echo "* ${i}: ${@}" > /dev/stderr
-    ssh ${fast} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${i} -- "${cmd}" || echo "Exited: ${?}"
+  for i in $(echo ${results} | jq -r '.[] | [.ip, .name] | join(":")'); do
+    ip=${i%:*}
+    name=${i#*:}
+    echo "* ${name} ${ip}: ${@}" > /dev/stderr
+    ssh ${fast} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ip} -- "${cmd}" || echo "Exited: ${?}"
   done
 
 # else print out the results
