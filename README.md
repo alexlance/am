@@ -19,12 +19,12 @@ Installation
 
 Get the script into your $PATH:
 
-    git clone git@github.com:alexlance/am am.repo
-    ln -s am.repo/am /usr/bin/am
+    git clone git@github.com:alexlance/am
+    ln -s am/am /usr/bin/am
 
-If you'd like tab-completion for your instance names, run this as a cronjob every half hour or so:
+If you'd like tab-completion for your instance names, run this as a cronjob every so often:
 
-    */30 * * * * aws ec2 describe-tags --filters "Name=resource-type,Values=instance" --query "join(' ',sort(Tags[?Key=='Name'].Value))" | tr -d '"' > /tmp/.instances
+    0 * * * * echo "" > /tmp/.instances; for region in $AWS_REGIONS; do aws --region $region ec2 describe-tags --filters "Name=resource-type,Values=instance" --query "join(' ',sort(Tags[?Key=='Name'].Value))" | tr -d '"' >> /tmp/.instances; done
 
 Then copy the tab-completion script into the proper place:
 
