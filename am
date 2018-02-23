@@ -1,20 +1,15 @@
 #!/bin/bash
-
-while getopts ":pl" opt; do
-  case ${opt} in
-    "p") fast="-f";;
-    "?") echo "Invalid option: -${OPTARG}" && exit 1;;
-  esac
-done
-shift $((${OPTIND} - 1))
-[ ${#} -eq 0 ] && echo "usage: am [-p] <hostname> [command]" && exit 1
+[ ${#} -eq 0 ] && echo "usage: [FAST=1] am <hostname> [command]" && exit 1
 
 if [ -v AWS_REGIONS ]; then
   regions="${AWS_REGIONS}"
 else
-  echo "AWS_REGIONS is empty. Try eg: export AWS_REGIONS=\"ap-southeast-2 us-west-2\""
+  echo 'AWS_REGIONS is empty. Try: export AWS_REGIONS="ap-southeast-2 us-west-2"'
   exit 1
 fi
+
+# possibly background the ssh command for faster command execution
+[ -v FAST ] && fast="-f"
 
 # filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
 field="Name=tag:Name,Values=*${1}*"

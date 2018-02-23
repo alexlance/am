@@ -11,6 +11,7 @@ Prerequisites
 
 1. aws-cli
 2. ssh access to the relevant instances
+3. Enable certain AWS regions: `export AWS_REGIONS="ap-southeast-2 us-west-2"`
 
 
 Installation
@@ -34,22 +35,21 @@ Usage
 -----
 
     # usage:
-    am [-p|-l] <instancename> [command]
+    [FAST=1] am <instancename> [command]
 
     # print a list of servers matching this name
     am webservers
 
-    # run a command on a bunch of servers that match this name eg
+    # run a command on a bunch of servers that match this name
     am webservers 'ps -ef | grep apache'
 
     # run a shell on each in turn - basically ssh-ing to the server
     am webservers bash
 
     # any mentions of sudo in the command will be replaced with 'echo "$password" | sudo -S'
+    # so you only need to type your sudo password once, even across multiple servers
     am webservers 'sudo docker start $(sudo docker ps -qa -f Name=stuff)'
 
-    # amp runs commands using ssh -f, for backgrounded execution. Much faster when targeting a lot of servers
-    am -p lots-and-lots-of-servers 'run a command, but the output is going to be all jumbled up'
-
-    # show the cloudwatch logs for a CW log group named /var/log/syslog, where the streams match the server names
-    am -l webservers
+    # use env var FAST=1 to run commands using ssh -f, for backgrounded execution
+    # this speeds up command execution when targeting a lot of servers
+    FAST=1 am lots-and-lots-of-servers 'runs a command, but the output is going to be all jumbled up'
