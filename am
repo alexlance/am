@@ -1,8 +1,8 @@
 #!/bin/bash
 [ ${#} -eq 0 ] && echo "usage: [FAST=1] am <hostname> [command]" && exit 1
-[ -z "${AWS_REGIONS}" ] && echo 'AWS_REGIONS is empty. Eg try: export AWS_REGIONS="ap-southeast-2 us-west-2"' && exit 1
+[ -z "${AWS_REGIONS}" ] && echo 'AWS_REGIONS empty. Eg try: export AWS_REGIONS="ap-southeast-2 us-west-2"' && exit 1
 
-# possibly background the ssh command for faster command execution
+# can background the ssh command for faster command execution
 [ -v FAST ] && fast="-f"
 
 # filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
