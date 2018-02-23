@@ -3,12 +3,11 @@
 while getopts ":pl" opt; do
   case ${opt} in
     "p") fast="-f";;
-    "l") logs="1";;
     "?") echo "Invalid option: -${OPTARG}" && exit 1;;
   esac
 done
 shift $((${OPTIND} - 1))
-[ ${#} -eq 0 ] && echo "usage: am [-p|-l] <hostname> [command]" && exit 1
+[ ${#} -eq 0 ] && echo "usage: am [-p] <hostname> [command]" && exit 1
 
 # change the default region if hostname starts with us-
 [ "${1:0:3}" == "us-" ] && region="--region us-west-2"
@@ -32,26 +31,8 @@ results=$(
     --cli-read-timeout 0
 )
 
-# print the cloudwatch logs for the matching hosts
-if [ "${logs}" ]; then
-  while [ 1 ]; do
-    log=$(
-      aws logs filter-log-events \
-        --log-group-name /var/log/syslog \
-        --interleaved \
-        --log-stream-names $(echo ${results} | jq -r '.[] .name') \
-        --start-time $(($(date +%s) * 1000 - 15000)) \
-        --max-items 15 \
-        ${next_token}
-    )
-    next_token=$(echo ${log} | jq -r '.NextToken // empty')
-    [ "${next_token}" ] && next_token="--starting-token ${next_token}"
-    echo ${log} | jq -r '.events[].message'
-    sleep 4
-  done
-
-# else run a command remotely on matching hosts
-elif [ ${#} -gt 1 ]; then
+# run a command remotely on matching hosts
+if [ ${#} -gt 1 ]; then
   shift # drop hostname
   cmd="${@}"
   if grep -q "sudo " <<< "${cmd}"; then
