@@ -1,9 +1,6 @@
 #!/bin/bash
 [ ${#} -eq 0 ] && echo "usage: [FAST=1] am <hostname> [command]" && exit 1
 
-# can background the ssh command for faster command execution
-[ -v FAST ] && fast="-f"
-
 # filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
 field="Name=tag:Name,Values=*${1}*"
 [ "${1:0:2}" == "i-" ]                      && field="Name=instance-id,Values=${1}"
@@ -37,7 +34,7 @@ if [ ${#} -gt 1 ]; then
     ip=${i%:*}
     name=${i#*:}
     echo "* ${name} ${ip}: ${@}" > /dev/stderr
-    ssh ${fast} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ip} -- "${cmd}" || echo "Exited: ${?}"
+    ssh ${FAST:+-f} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ip} -- "${cmd}" || echo "Exited: ${?}"
   done
 
 # else print out the results
