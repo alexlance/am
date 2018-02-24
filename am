@@ -1,6 +1,5 @@
 #!/bin/bash
 [ ${#} -eq 0 ] && echo "usage: [FAST=1] am <hostname> [command]" && exit 1
-[ -z "${AWS_REGIONS}" ] && echo 'AWS_REGIONS empty. Eg try: export AWS_REGIONS="ap-southeast-2 us-west-2"' && exit 1
 
 # can background the ssh command for faster command execution
 [ -v FAST ] && fast="-f"
@@ -12,7 +11,7 @@ field="Name=tag:Name,Values=*${1}*"
 [ $(grep -E '^[0-9]+'     <<< "${1:0:1}") ] && field="Name=private-ip-address,Values=*${1}*"
 [ $(grep -E '^[a-z][0-9]' <<< "${1:0:2}") ] && field="Name=instance-type,Values=${1}*"
 
-for region in ${AWS_REGIONS}; do
+for region in ${AWS_REGIONS:-$(aws configure get region)}; do
   results+=$(
     aws ec2 describe-instances --region ${region} \
       --filters \
