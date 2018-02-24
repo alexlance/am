@@ -1,5 +1,5 @@
 #!/bin/bash
-[ ${#} -eq 0 ] && echo "usage: [FAST=1] am <hostname> [command]" && exit 1
+[ ${#} -eq 0 ] && echo "usage: am <hostname> [command]" && exit 1
 
 # filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
 field="Name=tag:Name,Values=*${1}*"
