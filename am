@@ -22,12 +22,19 @@ for region in ${AWS_REGIONS:-$(aws configure get region)}; do
   )
 done
 
-# run a command remotely on matching hosts
+# get command to run
 if [ ${#} -gt 1 ]; then
   shift # drop hostname
   cmd="${@}"
+# read from stdin
+elif [ ! -t 0 ]; then
+  cmd="$(cat)"
+fi
+
+# run a command remotely on matching hosts
+if [ "${cmd}" ]; then
   if grep -q "sudo " <<< "${cmd}"; then
-    [ "${AM_SUDO_PASSWORD}" ] || read -p "[am] sudo password: " -s AM_SUDO_PASSWORD; echo
+    [ "${AM_SUDO_PASSWORD}" ] || read -p "[am] sudo password: " -s AM_SUDO_PASSWORD </dev/tty; echo
     cmd=${cmd//sudo/"echo \"${AM_SUDO_PASSWORD}\" | sudo -p' ' -S"}
   fi
   for i in $(echo ${results} | jq -r '.[] | [.ip, .name] | join(":")'); do
