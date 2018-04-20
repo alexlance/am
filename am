@@ -24,6 +24,13 @@ for region in ${AWS_REGIONS:-$(aws configure get region)}; do
 done
 wait
 
+# no matches? perhaps it was a hostname
+if [ -z "$(jq '.[]' < ${temp})" ]; then
+  ip=$(getent hosts ${1} | cut -d' ' -f1)
+  tpl='[{"name":"%s","ip":"%s","id":"unknown","az":"unknown","type":"unknown","ami":"unknown","role":"unknown","up":"unknown"}]'
+  [ "${ip}" ] && printf "${tpl}" "${1}" "${ip}" > ${temp}
+fi
+
 # get command to run
 if [ ${#} -gt 1 ]; then
   shift # drop hostname
