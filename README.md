@@ -40,6 +40,10 @@ These environment variables may be useful:
     # use `ssh -f` for faster command execution when there are many servers
     FAST=1
 
+    # sometimes you want to exactly match an instance name, instead of a star-pattern-star match
+    EXACT=1
+
+
 Usage
 -----
 

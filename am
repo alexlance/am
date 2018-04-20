@@ -3,6 +3,7 @@
 
 # filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
 field="Name=tag:Name,Values=*${1}*"
+[ "${EXACT}" ]                              && field="Name=tag:Name,Values=${1}"
 [ "${1:0:2}" == "i-" ]                      && field="Name=instance-id,Values=${1}"
 [ "${1:0:4}" == "ami-" ]                    && field="Name=image-id,Values=${1}"
 [ $(grep -E '^[0-9]+'     <<< "${1:0:1}") ] && field="Name=private-ip-address,Values=*${1}*"
