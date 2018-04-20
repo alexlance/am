@@ -8,19 +8,21 @@ field="Name=tag:Name,Values=*${1}*"
 [ $(grep -E '^[0-9]+'     <<< "${1:0:1}") ] && field="Name=private-ip-address,Values=*${1}*"
 [ $(grep -E '^[a-z][0-9]' <<< "${1:0:2}") ] && field="Name=instance-type,Values=${1}*"
 
+temp=$(mktemp)
+trap 'rm -f ${temp}' EXIT
+
 for region in ${AWS_REGIONS:-$(aws configure get region)}; do
-  results+=$(
-    aws ec2 describe-instances --region ${region} \
-      --filters \
-        ${field} \
-        "Name=instance-state-name,Values=running" \
-      --query \
-        "sort_by(Reservations[*].Instances[].{name:Tags[?Key=='Name'] | [0].Value, \
-        id:InstanceId, ip:PrivateIpAddress, az:Placement.AvailabilityZone, type:InstanceType, \
-        up:LaunchTime, ami:ImageId, role:IamInstanceProfile.Arn}, &name)" \
-      --cli-read-timeout 0
-  )
+  aws ec2 describe-instances --region ${region} \
+    --filters \
+      ${field} \
+      "Name=instance-state-name,Values=running" \
+    --query \
+      "sort_by(Reservations[*].Instances[].{name:Tags[?Key=='Name'] | [0].Value, \
+      id:InstanceId, ip:PrivateIpAddress, az:Placement.AvailabilityZone, type:InstanceType, \
+      up:LaunchTime, ami:ImageId, role:IamInstanceProfile.Arn}, &name)" \
+    --cli-read-timeout 0 >> ${temp} &
 done
+wait
 
 # get command to run
 if [ ${#} -gt 1 ]; then
@@ -37,7 +39,7 @@ if [ "${cmd}" ]; then
     [ "${AM_SUDO_PASSWORD}" ] || read -p "[am] sudo password: " -s AM_SUDO_PASSWORD </dev/tty; echo
     cmd=${cmd//sudo/"echo \"${AM_SUDO_PASSWORD}\" | sudo -p' ' -S"}
   fi
-  for i in $(echo ${results} | jq -r '.[] | [.ip, .name] | join(":")'); do
+  for i in $(jq -r '.[] | [.ip, .name] | join(":")' < ${temp}); do
     ip=${i%:*}
     name=${i#*:}
     echo "* ${name} ${ip}: ${@}" > /dev/stderr
@@ -46,5 +48,5 @@ if [ "${cmd}" ]; then
 
 # else print out the results
 else
-  echo ${results} | jq -r '.[] | [.name, .id, .ip, .az, .type, .ami, (.role|split("/")?|last), (.up|split("T")?|first) ] | join(" ")' | column -t
+  jq -r '.[] | [.name, .id, .ip, .az, .type, .ami, (.role|split("/")?|last), (.up|split("T")?|first) ] | join(" ")' < ${temp} | column -t
 fi
