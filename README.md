@@ -59,6 +59,13 @@ Usage
     # so you only need to type your sudo password once, even across multiple servers
     am webservers 'sudo docker start $(sudo docker ps -qa -f Name=stuff)'
 
+    # use shell heredocs if you want to run a bunch of commands
+    am webservers <<EOF
+    sudo service apache stop
+    sudo rm -rf /var/log/apache/*
+    sudo service apache start
+    EOF
+
     # use env var FAST=1 to run commands using ssh -f, for backgrounded execution
     # this speeds up command execution when targeting a lot of servers
     FAST=1 am pattern-that-matches-many-servers 'run a command, the output is going to be all jumbled up'
