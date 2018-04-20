@@ -38,10 +38,10 @@ These environment variables may be useful:
     AM_SUDO_PASSWORD="tops3cret"
 
     # use `ssh -f` for faster command execution when there are many servers
-    FAST=1
+    AM_FAST=1
 
     # sometimes you want to exactly match an instance name, instead of a star-pattern-star match
-    EXACT=1
+    AM_EXACT=1
 
 
 Usage
@@ -70,6 +70,6 @@ Usage
     sudo service apache start
     EOF
 
-    # use env var FAST=1 to run commands using ssh -f, for backgrounded execution
+    # use env var AM_FAST=1 to run commands using ssh -f, for backgrounded execution
     # this speeds up command execution when targeting a lot of servers
-    FAST=1 am pattern-that-matches-many-servers 'run a command, the output is going to be all jumbled up'
+    AM_FAST=1 am pattern-that-matches-many-servers 'run a command, the output is going to be all jumbled up'
