@@ -26,7 +26,7 @@ done
 wait
 
 # no matches? perhaps it was a hostname
-if [ -z "$(jq '.[]' < ${temp})" ]; then
+if [ -z "$(jq '.[]' < ${temp})" ] && [ "$(which getent)" ]; then
   ip=$(getent hosts ${1} | cut -d' ' -f1)
   tpl='[{"name":"%s","ip":"%s","id":"unknown","az":"unknown","type":"unknown","ami":"unknown","role":"unknown","up":"unknown"}]'
   [ "${ip}" ] && printf "${tpl}" "${1}" "${ip}" > ${temp}
