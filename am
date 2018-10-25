@@ -51,7 +51,7 @@ if [ "${cmd}" ]; then
     ip=${i%:*}
     name=${i#*:}
     echo "* ${name} ${ip}: ${@}" > /dev/stderr
-    ssh ${AM_FAST:+-f} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ip} -- "${cmd}" || echo "Exited: ${?}"
+    ssh ${AM_FAST:+-f} ${AM_FAST:+-n} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ip} -- "${cmd}" || echo "Exited: ${?}"
   done
 
 # else print out the results
