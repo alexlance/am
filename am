@@ -1,6 +1,9 @@
 #!/bin/bash
 [ ${#} -eq 0 ] && echo "usage: am <hostname> [command]" && exit 1
 
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # filter list based on first few characters of search: name, instance-id, ami, private IP or instance-type
 field="Name=tag:Name,Values=*${1}*"
 [ "${AM_EXACT}" ]                           && field="Name=tag:Name,Values=${1}"
@@ -32,6 +35,9 @@ if [ -z "$(jq '.[]' < ${temp})" ] && [ "$(which getent)" ]; then
   [ "${ip}" ] && printf "${tpl}" "${1}" "${ip}" > ${temp}
 fi
 
+# no hosts found, then exit 1
+[ -z "$(jq '.[]' < ${temp})" ] && echo -e "${RED}Error no host found: ${1}${NC}" && exit 1
+
 # get command to run
 if [ ${#} -gt 1 ]; then
   shift # drop hostname
@@ -51,8 +57,11 @@ if [ "${cmd}" ]; then
     ip=${i%:*}
     name=${i#*:}
     echo "* ${name} ${ip}: ${@}" > /dev/stderr
-    ssh ${AM_FAST:+-f} ${AM_FAST:+-n} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ip} -- "${cmd}" || echo "Exited: ${?}"
+    ssh ${AM_FAST:+-f} ${AM_FAST:+-n} -t -q -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${ip} -- "${cmd}"
+    ex=$?
+    [ "${ex}" != 0 ] && failed=${ex} && echo -e "${RED}Exited: ${ex}${NC}"
   done
+  [ "${failed}" ] && exit ${failed}
 
 # else print out the results
 else
